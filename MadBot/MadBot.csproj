@@ -6,7 +6,11 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Discord.Addons.Hosting" Version="4.0.3-labs" />
       <PackageReference Include="Discord.Net" Version="2.4.0" />
+      <PackageReference Include="Messaia.Net.Base.Template.Services" Version="5.1.1" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0" />
     </ItemGroup>
 
 </Project>
