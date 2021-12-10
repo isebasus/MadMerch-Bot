@@ -13,10 +13,17 @@ using MadBot.Services;
 
 namespace MadBot
 {
-    class Madmerch
+    public class Madmerch
     {
+
+        private static int _ticket = 1000;
         public static void Main(string[] args)
             => new Madmerch().MainAsync().GetAwaiter().GetResult();
+        public static int Ticket
+        {
+            get { return _ticket; }
+            set { _ticket = value; }
+        }
 
         public async Task MainAsync()
         {

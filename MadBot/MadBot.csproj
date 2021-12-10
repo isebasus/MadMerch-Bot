@@ -14,7 +14,10 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Modules\OrderStatus" />
+	    <None Update="appsettings.json">
+        	<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+      	<Folder Include="Modules\OrderStatus" />
     </ItemGroup>
 
 </Project>
