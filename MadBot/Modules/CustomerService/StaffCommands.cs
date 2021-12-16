@@ -1,4 +1,6 @@
+using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord.Commands;
 using Discord;
@@ -74,17 +76,16 @@ namespace MadBot.Modules.CustomerService
                 }
             }
             Madmerch.Ticket++;
-
+            
             var index = Context.Guild.Users.Select(x => x.Mention).IndexOf(user);
-
             if (index == -1)
             {
                 await ReplyAsync("Could not find customer.", messageReference: new MessageReference(Context.Message.Id)).ConfigureAwait(false);
                 return;
             }
-            
-            var mentioned  = Context.Guild.Users.ElementAt(index);
 
+            var mentioned = Context.Guild.Users.ElementAt(index);
+            
             SocketGuild guild = Context.Guild;
             RestTextChannel newChannel =
                 await Context.Guild.CreateTextChannelAsync($"ticket-" + Madmerch.Ticket,

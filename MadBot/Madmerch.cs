@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Addons.Hosting;
@@ -17,6 +19,9 @@ namespace MadBot
     {
 
         private static int _ticket = 1000;
+        private DiscordSocketClient _client;
+        private CommandService _commands;
+        private IServiceProvider _services;
         public static void Main(string[] args)
             => new Madmerch().MainAsync().GetAwaiter().GetResult();
         public static int Ticket
@@ -24,53 +29,55 @@ namespace MadBot
             get { return _ticket; }
             set { _ticket = value; }
         }
-
         public async Task MainAsync()
         {
+            string token = "OTE4NzU3MTQyMTg0NDg0ODc1.YbL5RA.zd_azFLK9hGkUBrnRG8h3ZokZ2o";
 
-            var builder = new HostBuilder()
-                .ConfigureAppConfiguration(x =>
-                {
-                    var configuration = new ConfigurationBuilder()
-                        .SetBasePath(Directory.GetCurrentDirectory())
-                        .AddJsonFile("appsettings.json", false, true)
-                        .Build();
+            _client = new DiscordSocketClient();
+            _commands = new CommandService();
 
-                    x.AddConfiguration(configuration);
-                })
-                .ConfigureLogging(x =>
-                {
-                    x.AddConsole();
-                    x.SetMinimumLevel(LogLevel.Debug); 
-                })
-                .ConfigureDiscordHost((context, config) =>
-                {
-                    config.SocketConfig = new DiscordSocketConfig
-                    {
-                        LogLevel = LogSeverity.Verbose, 
-                        AlwaysDownloadUsers = true,
-                        MessageCacheSize = 200,
-                    };
+            _services = new ServiceCollection()
+                .AddSingleton(_client)
+                .AddSingleton(_commands)
+                .BuildServiceProvider();
 
-                    config.Token = context.Configuration["token"];
-                })
-                .UseCommandService((context, config) =>
-                {
-                    config.CaseSensitiveCommands = false;
-                    config.LogLevel = LogSeverity.Verbose;
-                    config.DefaultRunMode = RunMode.Sync;
-                })
-                .ConfigureServices((context, services) =>
-                {
-                    services.AddHostedService<CommandHandler>();
-                })
-                .UseConsoleLifetime();
+            _client.Log += Log;
+
+            await RegisterCommandsAsync();
+
+            await _client.LoginAsync(TokenType.Bot,
+                token);
+            await _client.StartAsync();
+
+            // Block this task until the program is closed.
+            await Task.Delay(-1);
+        }
+
+        public async Task RegisterCommandsAsync()
+        {
+            _client.MessageReceived += HandleCommandAsync;
+            await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), _services);
+        }
+        
+
+        private async Task HandleCommandAsync(SocketMessage arg)
+        {
+            var message = arg as SocketUserMessage;
+            var context = new SocketCommandContext(_client, message);
             
-            var host = builder.Build();
-            using (host)
+
+            int argPos = 0;
+            if (message.HasStringPrefix("~", ref argPos))
             {
-                await host.RunAsync();
+                var result = await _commands.ExecuteAsync(context, argPos, _services);
+                if (!result.IsSuccess) Console.WriteLine(result.ErrorReason);
             }
+        }
+
+        private Task Log(LogMessage msg)
+        {
+            Console.WriteLine(msg.ToString());
+            return Task.CompletedTask;
         }
     }
 }
